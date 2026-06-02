@@ -45,8 +45,12 @@ class MiaoDocumentFile(
 
         @JvmStatic
         @RequiresApi(Build.VERSION_CODES.O)
-        fun requestFolderPermission(activity: Activity, requestCode: Int, id: String) {
-            val i = getUriOpenIntent(getFolderUri(id, false))
+        fun requestFolderPermission(activity: Activity, requestCode: Int, id: String? = null) {
+            val i = if (id.isNullOrBlank()) {
+                Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+            } else {
+                getUriOpenIntent(getFolderUri(id, false))
+            }
 
             val flags = Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or
                     Intent.FLAG_GRANT_READ_URI_PERMISSION or

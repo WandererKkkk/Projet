@@ -11,6 +11,9 @@ import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import cn.a10miaomiao.bilidown.common.LocalStoragePermission
 import cn.a10miaomiao.bilidown.common.MiaoLog
+import cn.a10miaomiao.bilidown.common.datastore.DataStoreKeys
+import cn.a10miaomiao.bilidown.common.datastore.dataStore
+import androidx.datastore.preferences.core.edit
 import cn.a10miaomiao.bilidown.common.permission.StoragePermission
 import cn.a10miaomiao.bilidown.service.BiliDownService
 import cn.a10miaomiao.bilidown.ui.MainComposeApp
@@ -89,6 +92,11 @@ class MainActivity : ComponentActivity(), Shizuku.OnRequestPermissionResultListe
                     val flags =
                         Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                     contentResolver.takePersistableUriPermission(uri, flags)
+                    lifecycleScope.launch {
+                        dataStore.edit {
+                            it[DataStoreKeys.mmsoFolderUri] = uri.toString()
+                        }
+                    }
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }

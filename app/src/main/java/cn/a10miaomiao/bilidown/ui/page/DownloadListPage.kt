@@ -104,6 +104,11 @@ fun DownloadListPagePresenter(
             MiaoLog.debug { "getList(packageName:$packageName, enabledShizuku: $enabledShizuku)" }
             val biliDownFile = BiliDownFile(context, packageName, enabledShizuku)
             canRead = biliDownFile.canRead()
+            path = if (packageName == "com.mmstudyonline.mmso") {
+                biliDownFile.getSelectedMMSOFolderUri() ?: ""
+            } else {
+                ""
+            }
             if (!canRead) {
                 return
             }
@@ -238,7 +243,15 @@ fun DownloadListPage(
     val shizukuPermission = localShizukuPermission()
     val shizukuPermissionState by shizukuPermission.collectState()
 
-    val (state, channel) = rememberPresenter(listOf(packageName, permissionState)) {
+    val selectedMMSOFolderUri by rememberDataStorePreferencesFlow(
+        context,
+        DataStoreKeys.mmsoFolderUri,
+        ""
+    ).collectAsState(initial = "")
+
+    val (state, channel) = rememberPresenter(
+        listOf(packageName, permissionState, selectedMMSOFolderUri)
+    ) {
         DownloadListPagePresenter(context, it)
     }
 
@@ -257,6 +270,21 @@ fun DownloadListPage(
                 DownloadListPageAction.GetList(
                     packageName = packageName,
                     shizukuPermissionState.isEnabled,
+                )
+            )
+        }
+    }
+
+    LaunchedEffect(selectedMMSOFolderUri) {
+        if (packageName == "com.mmstudyonline.mmso"
+            && selectedMMSOFolderUri.isNotBlank()
+            && permissionState.isGranted
+            && permissionState.isExternalStorage
+        ) {
+            channel.send(
+                DownloadListPageAction.RefreshList(
+                    packageName = packageName,
+                    enabledShizuku = shizukuPermissionState.isEnabled,
                 )
             )
         }
@@ -359,6 +387,14 @@ fun DownloadListPage(
                         }
                     }
                 } else if (!state.canRead) {
+                    if (packageName == "com.mmstudyonline.mmso" && state.path.isNotBlank()) {
+                        Text(
+                            text = "当前已选择目录：${state.path}",
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(12.dp)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                     Text(text = "请授予文件夹权限")
                     Spacer(modifier = Modifier.height(20.dp))
                     Button(
@@ -367,7 +403,7 @@ fun DownloadListPage(
                             biliDownFile.startFor(2)
                         }
                     ) {
-                        Text(text = "授予权限")
+                        Text(text = if (packageName == "com.mmstudyonline.mmso") "选择MMSO缓存目录" else "授予权限")
                     }
                     TextButton(
                         onClick = {
