@@ -110,6 +110,25 @@ class BiliDownService :
             toast("此视频已导出")
             return false
         }
+        
+        // Special handling for MMSO MP4 files
+        val mp4File = File(entryDirPath)
+        if (mp4File.isFile && mp4File.name.endsWith(".mp4")) {
+            // Direct MP4 file (MMSO)
+            appState.putTaskStatus(
+                TaskStatus.Copying(
+                    name = mp4File.nameWithoutExtension,
+                    entryDirPath = entryDirPath,
+                    cover = "",
+                    progress = 0f,
+                )
+            )
+            launch {
+                copyFile(mp4File, outFile)
+            }
+            return true
+        }
+        
         // 使用Shizuku
         if (shizukuState.isEnabled) {
             val shizukuUserService = try {

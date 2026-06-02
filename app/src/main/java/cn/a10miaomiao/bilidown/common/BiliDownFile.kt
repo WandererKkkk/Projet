@@ -41,6 +41,11 @@ class BiliDownFile(
 
     @Throws(TimeoutCancellationException::class)
     suspend fun readDownloadList(): List<BiliDownloadEntryAndPathInfo> {
+        // Special handling for MMSO
+        if (packageName == "com.mmstudyonline.mmso") {
+            return readMMSOVideoList()
+        }
+        
         val downloadDir = createMiaoFile(DIR_DOWNLOAD)
         val list = mutableListOf<BiliDownloadEntryAndPathInfo>()
         MiaoLog.debug { enabledShizuku.toString() }
@@ -132,7 +137,52 @@ class BiliDownFile(
         return path
     }
 
-
-
+    /**
+     * Read MMSO video files from custom storage path
+     */
+    private suspend fun readMMSOVideoList(): List<BiliDownloadEntryAndPathInfo> {
+        val list = mutableListOf<BiliDownloadEntryAndPathInfo>()
+        
+        // Try to find MMSO cache directory
+        val externalStorage = Environment.getExternalStorageDirectory()
+        
+        // Check common MMSO storage paths
+        val possiblePaths = listOf(
+            "/storage/1768-3511/data/files/playable_cache",
+            externalStorage.absolutePath + "/Android/data/com.mmstudyonline.mmso/files/playable_cache",
+            externalStorage.absolutePath + "/Android/data/com.mmstudyonline.mmso/cache/playable_cache"
+        )
+        
+        for (cachePath in possiblePaths) {
+            val cacheDir = File(cachePath)
+            if (cacheDir.exists() && cacheDir.isDirectory) {
+                // Scan for MP4 files
+                cacheDir.listFiles()?.filter { it.isFile && it.name.endsWith(".mp4") }?.forEach { mp4File ->
+                    val entry = BiliDownloadEntryInfo(
+                        media_type = 0,
+                        is_completed = true,
+                        total_bytes = mp4File.length(),
+                        downloaded_bytes = mp4File.length(),
+                        title = mp4File.nameWithoutExtension,
+                        cover = "",
+                        prefered_video_quality = 0,
+                        guessed_total_bytes = mp4File.length().toInt(),
+                        total_time_milli = 0L,
+                        danmaku_count = 0
+                    )
+                    list.add(
+                        BiliDownloadEntryAndPathInfo(
+                            entry = entry,
+                            entryDirPath = mp4File.absolutePath,
+                            pageDirPath = cachePath
+                        )
+                    )
+                }
+                break
+            }
+        }
+        
+        return list.reversed()
+    }
 
 }
