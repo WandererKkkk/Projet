@@ -11,4 +11,6 @@ object DataStoreKeys {
     val enabledShizuku = booleanPreferencesKey("enabled_shizuku")
 
     val mmsoFolderUri = stringPreferencesKey("mmso_folder_uri")
+
+    val mmsoDbUri = stringPreferencesKey("mmso_db_uri")
 }

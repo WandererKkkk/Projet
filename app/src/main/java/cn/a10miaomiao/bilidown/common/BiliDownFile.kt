@@ -58,6 +58,10 @@ class BiliDownFile(
         return context.dataStore.data.first()[DataStoreKeys.mmsoFolderUri]
     }
 
+    suspend fun getSelectedMMSODbUri(): String? {
+        return context.dataStore.data.first()[DataStoreKeys.mmsoDbUri]
+    }
+
     @Throws(TimeoutCancellationException::class)
     suspend fun readDownloadList(): List<BiliDownloadEntryAndPathInfo> {
         // Special handling for MMSO
@@ -136,6 +140,22 @@ class BiliDownFile(
         }
     }
 
+    fun startForDb(REQUEST_CODE_FOR_DB: Int) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "*/*"
+                putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("application/x-sqlite3", "application/octet-stream", "*/*"))
+                addFlags(
+                    Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+            }
+            (context as Activity).startActivityForResult(intent, REQUEST_CODE_FOR_DB)
+        }
+    }
+
     private fun createMiaoFile(
         dirName: String,
     ): MiaoFile {
@@ -169,10 +189,15 @@ class BiliDownFile(
      */
     private suspend fun readMMSOVideoList(): List<BiliDownloadEntryAndPathInfo> {
         val manualUri = getSelectedMMSOFolderUri()
+        val selectedDbUri = getSelectedMMSODbUri()
         if (!manualUri.isNullOrBlank()) {
             val docRoot = DocumentFile.fromTreeUri(context, Uri.parse(manualUri))
             if (docRoot != null && docRoot.exists() && docRoot.isDirectory) {
-                val metadata = readMMSODBMetadata(docRoot)
+                val metadata = if (!selectedDbUri.isNullOrBlank()) {
+                    readMMSODBMetadataFromDocumentUri(Uri.parse(selectedDbUri))
+                } else {
+                    readMMSODBMetadata(docRoot)
+                }
                 return readMMSOVideoListFromDocumentFolder(docRoot, metadata)
             }
         }
@@ -268,6 +293,20 @@ class BiliDownFile(
 
     private suspend fun readMMSODBMetadata(root: DocumentFile): Map<String, String> {
         val dbFile = findDatabaseFile(root) ?: return emptyMap()
+        val tempDbFile = File.createTempFile("mmso_db", ".db", context.cacheDir)
+        return try {
+            MiaoDocumentFile(context, dbFile).copyToTemp(tempDbFile)
+            readMMSODBMetadata(tempDbFile)
+        } finally {
+            tempDbFile.delete()
+        }
+    }
+
+    private suspend fun readMMSODBMetadataFromDocumentUri(uri: Uri): Map<String, String> {
+        val dbFile = DocumentFile.fromSingleUri(context, uri)
+        if (dbFile == null || !dbFile.exists() || !dbFile.isFile) {
+            return emptyMap()
+        }
         val tempDbFile = File.createTempFile("mmso_db", ".db", context.cacheDir)
         return try {
             MiaoDocumentFile(context, dbFile).copyToTemp(tempDbFile)

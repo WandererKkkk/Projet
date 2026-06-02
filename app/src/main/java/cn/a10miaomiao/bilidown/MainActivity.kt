@@ -86,7 +86,7 @@ class MainActivity : ComponentActivity(), Shizuku.OnRequestPermissionResultListe
             storagePermission.requestPermissionsResult()
         }
         var uri = data?.data ?: return
-        if (requestCode == 2) {
+        if (requestCode == 2 || requestCode == 3) {
             if (resultCode == Activity.RESULT_OK) {
                 try {
                     val flags =
@@ -94,7 +94,11 @@ class MainActivity : ComponentActivity(), Shizuku.OnRequestPermissionResultListe
                     contentResolver.takePersistableUriPermission(uri, flags)
                     lifecycleScope.launch {
                         dataStore.edit {
-                            it[DataStoreKeys.mmsoFolderUri] = uri.toString()
+                            if (requestCode == 2) {
+                                it[DataStoreKeys.mmsoFolderUri] = uri.toString()
+                            } else {
+                                it[DataStoreKeys.mmsoDbUri] = uri.toString()
+                            }
                         }
                     }
                 } catch (e: Exception) {

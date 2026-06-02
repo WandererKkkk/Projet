@@ -249,8 +249,14 @@ fun DownloadListPage(
         ""
     ).collectAsState(initial = "")
 
+    val selectedMMSODbUri by rememberDataStorePreferencesFlow(
+        context,
+        DataStoreKeys.mmsoDbUri,
+        ""
+    ).collectAsState(initial = "")
+
     val (state, channel) = rememberPresenter(
-        listOf(packageName, permissionState, selectedMMSOFolderUri)
+        listOf(packageName, permissionState, selectedMMSOFolderUri, selectedMMSODbUri)
     ) {
         DownloadListPagePresenter(context, it)
     }
@@ -275,7 +281,7 @@ fun DownloadListPage(
         }
     }
 
-    LaunchedEffect(selectedMMSOFolderUri) {
+    LaunchedEffect(selectedMMSOFolderUri, selectedMMSODbUri) {
         if (packageName == "com.mmstudyonline.mmso"
             && selectedMMSOFolderUri.isNotBlank()
             && permissionState.isGranted
@@ -395,6 +401,14 @@ fun DownloadListPage(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                     }
+                    if (packageName == "com.mmstudyonline.mmso" && selectedMMSODbUri.isNotBlank()) {
+                        Text(
+                            text = "当前已选数据库：${Uri.parse(selectedMMSODbUri).lastPathSegment ?: selectedMMSODbUri}",
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(12.dp)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                     Text(text = "请授予文件夹权限")
                     Spacer(modifier = Modifier.height(20.dp))
                     Button(
@@ -404,6 +418,17 @@ fun DownloadListPage(
                         }
                     ) {
                         Text(text = if (packageName == "com.mmstudyonline.mmso") "选择MMSO缓存目录" else "授予权限")
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    if (packageName == "com.mmstudyonline.mmso") {
+                        Button(
+                            onClick = {
+                                val biliDownFile = BiliDownFile(context, packageName, shizukuPermissionState.isEnabled)
+                                biliDownFile.startForDb(3)
+                            }
+                        ) {
+                            Text(text = "选择MMSO数据库文件")
+                        }
                     }
                     TextButton(
                         onClick = {

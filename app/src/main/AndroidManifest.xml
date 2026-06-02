@@ -14,16 +14,6 @@
     <uses-sdk tools:overrideLibrary="dev.rikka.shizuku.provider,dev.rikka.shizuku.api,dev.rikka.shizuku.shared,dev.rikka.shizuku.aidl"/>
 
     <queries>
-        <!-- 哔哩哔哩 -->
-        <package android:name="tv.danmaku.bili" />
-        <!-- 概念版 -->
-        <package android:name="com.bilibili.app.blue" />
-        <!-- 谷歌版 -->
-        <package android:name="com.bilibili.app.in" />
-        <!-- bilimiao -->
-        <package android:name="com.a10miaomiao.bilimiao" />
-        <!-- bilimiao-dev -->
-        <package android:name="cn.a10miaomiao.bilimiao.dev" />
         <!-- MMSO -->
         <package android:name="com.mmstudyonline.mmso" />
         <!-- shizuku -->

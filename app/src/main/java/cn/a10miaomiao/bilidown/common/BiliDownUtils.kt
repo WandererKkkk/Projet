@@ -17,35 +17,10 @@ object BiliDownUtils {
 
     val biliAppList = listOf(
         BiliAppInfo(
-            "哔哩哔哩",
-            "tv.danmaku.bili",
-            icon = R.drawable.ic_bilibili
-        ),
-        BiliAppInfo(
-            "哔哩哔哩(概念版)",
-            "com.bilibili.app.blue",
-            icon = R.drawable.ic_bilibili_blue
-        ),
-        BiliAppInfo(
-            "哔哩哔哩(谷歌版)",
-            "com.bilibili.app.in",
-            icon = R.drawable.ic_bilibili
-        ),
-        BiliAppInfo(
-            "bilimiao",
-            "com.a10miaomiao.bilimiao",
-            icon = R.drawable.ic_bilimiao
-        ),
-        BiliAppInfo(
             "MMSO(美美学堂在线)",
             "com.mmstudyonline.mmso",
             icon = R.drawable.ic_bilibili
         ),
-//        BiliAppInfo(
-//            "bilimiao-dev",
-//            "cn.a10miaomiao.bilimiao.dev",
-//            icon = R.drawable.ic_bilimiao
-//        ),
     )
 
     fun checkSelfPermission(
