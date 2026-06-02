@@ -8,14 +8,14 @@ plugins {
 
 android {
     namespace 'cn.a10miaomiao.bilidown'
-    compileSdk 35
+    compileSdk 34
 
     boolean isReleaseTask = gradle.startParameter.taskNames.any { it.contains("Release") }
 
     defaultConfig {
         applicationId "cn.a10miaomiao.bilidown"
         minSdk 21
-        targetSdk 35
+        targetSdk 34
         versionCode 100
         versionName "1.0"
 
